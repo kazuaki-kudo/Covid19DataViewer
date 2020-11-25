@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
+using System.IO;
 
 namespace Covid19DataViewer
 {
@@ -55,76 +56,82 @@ namespace Covid19DataViewer
             // バージョン表記
             this.Text = progName + " Ver." + version + " " + Copyright();
 
+            // ディレクトリ表示前回値読み込み
+            textBoxConfirmed.Text = Properties.Settings.Default.DirConfirmed;
+            textBoxDeaths.Text = Properties.Settings.Default.DirDeaths;
+            textBoxRecovered.Text = Properties.Settings.Default.DirRecovered;
         }
+
+
         #endregion
 
         private void buttonDownload_Click(object sender, EventArgs e)
         {
-            buttonDownload.Enabled = false;
-            buttonDownloadCancel.Enabled = true;
+            //buttonDownload.Enabled = false;
+            //buttonDownloadCancel.Enabled = true;
 
-            //ダウンロードしたファイルの保存先
-            string fileName = saveLocalFullPathConfirmed;
-            //ダウンロード基のURL
-            Uri u = new Uri(loadUrlConfirmed);
+            ////ダウンロードしたファイルの保存先
+            //string fileName = saveLocalFullPathConfirmed;
+            ////ダウンロード基のURL
+            //Uri u = new Uri(loadUrlConfirmed);
 
-            //WebClientの作成
-            if (downloadClient == null)
-            {
-                downloadClient = new System.Net.WebClient();
-                //downloadClient.Headers.Add();
+            ////WebClientの作成
+            //if (downloadClient == null)
+            //{
+            //    downloadClient = new System.Net.WebClient();
+            //    //downloadClient.Headers.Add();
 
 
-                //イベントハンドラの作成
-                downloadClient.DownloadProgressChanged +=
-                    new System.Net.DownloadProgressChangedEventHandler(
-                        downloadClient_DownloadProgressChanged);
-                downloadClient.DownloadFileCompleted +=
-                    new System.ComponentModel.AsyncCompletedEventHandler(
-                        downloadClient_DownloadFileCompleted);
-            }
-            //非同期ダウンロードを開始する
-            downloadClient.DownloadFileAsync(u, fileName);
+            //    //イベントハンドラの作成
+            //    downloadClient.DownloadProgressChanged +=
+            //        new System.Net.DownloadProgressChangedEventHandler(
+            //            downloadClient_DownloadProgressChanged);
+            //    downloadClient.DownloadFileCompleted +=
+            //        new System.ComponentModel.AsyncCompletedEventHandler(
+            //            downloadClient_DownloadFileCompleted);
+            //}
+            ////非同期ダウンロードを開始する
+            //downloadClient.DownloadFileAsync(u, fileName);
         }
 
         private void buttonDownloadCancel_Click(object sender, EventArgs e)
         {
-            //非同期ダウンロードをキャンセルする
-            if (downloadClient != null)
-            {
-                downloadClient.CancelAsync();
-            }
+            ////非同期ダウンロードをキャンセルする
+            //if (downloadClient != null)
+            //{
+            //    downloadClient.CancelAsync();
+            //}
         }
 
         private void downloadClient_DownloadProgressChanged(object sender, System.Net.DownloadProgressChangedEventArgs e)
         {
             //Console.WriteLine("{0}% ({1}byte 中 {2}byte) ダウンロードが終了しました。",
             //    e.ProgressPercentage, e.TotalBytesToReceive, e.BytesReceived);
-            string msg = string.Format("{0}% ({1}byte 中 {2}byte) ダウンロードが終了しました。",
-                e.ProgressPercentage, e.TotalBytesToReceive, e.BytesReceived);
-            SLogInv(msg);
+            //string msg = string.Format("{0}% ({1}byte 中 {2}byte) ダウンロードが終了しました。",
+            //    e.ProgressPercentage, e.TotalBytesToReceive, e.BytesReceived);
+            //SLogInv(msg);
         }
 
         private void downloadClient_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
-            if (e.Cancelled)
-            {
-                //Console.WriteLine("キャンセルされました。");
-                SLogInv("キャンセルされました。");
-            }
-            else if (e.Error != null)
-            {
-                //Console.WriteLine("エラー:{0}", e.Error.Message);
-                string msg = string.Format("エラー:{0}", e.Error.Message);
-                SLogInv(msg);
-            }
-            else
-            {
-                //Console.WriteLine("ダウンロードが完了しました。");
-                SLogInv("ダウンロードが完了しました。");
-            }
-            buttonDownload.Enabled = true;
-            buttonDownloadCancel.Enabled = false;
+            //if (e.Cancelled)
+            //{
+            //    //Console.WriteLine("キャンセルされました。");
+            //    SLogInv("キャンセルされました。");
+            //}
+            //else if (e.Error != null)
+            //{
+            //    //Console.WriteLine("エラー:{0}", e.Error.Message);
+            //    string msg = string.Format("エラー:{0}", e.Error.Message);
+            //    SLogInv(msg);
+            //}
+            //else
+            //{
+            //    //Console.WriteLine("ダウンロードが完了しました。");
+            //    SLogInv("ダウンロードが完了しました。");
+            //}
+            //buttonDownload.Enabled = true;
+            //buttonDownloadCancel.Enabled = false;
         }
 
         #region 簡易ログ
@@ -222,5 +229,57 @@ namespace Covid19DataViewer
         //    }
         //}
         #endregion
+
+        #region ReadFiles
+        private void buttonConfirmed_Click(object sender, EventArgs e)
+        {
+            SelectFile(textBoxConfirmed, "Confirmed");
+        }
+
+        private void buttonDeaths_Click(object sender, EventArgs e)
+        {
+            SelectFile(textBoxDeaths, "Deaths");
+        }
+
+        private void buttonRecovered_Click(object sender, EventArgs e)
+        {
+            SelectFile(textBoxRecovered, "Recovered");
+        }
+        private void SelectFile(TextBox tBox, string fileType)
+        {
+            OpenFileDialog ofDialog = new OpenFileDialog();
+            // 初期フォルダー指定
+            if (string.IsNullOrEmpty(tBox.Text))
+            {
+                ofDialog.InitialDirectory = @"C:\";
+            }
+            else
+            {
+                ofDialog.InitialDirectory = Path.GetDirectoryName(tBox.Text.Trim());
+            }
+            // ダイアログタイトル
+            ofDialog.Title = string.Format("Choose the file ({0})", fileType);
+            // ダイアログを表示する
+            if (ofDialog.ShowDialog() == DialogResult.OK)
+            {
+                tBox.Text = ofDialog.FileName;
+            }
+            // オブジェクトを破棄する
+            ofDialog.Dispose();
+        }
+
+        private void buttonRead_Click(object sender, EventArgs e)
+        {
+            // ディレクトリ表示値保存
+            Properties.Settings.Default.DirConfirmed = textBoxConfirmed.Text;
+            Properties.Settings.Default.DirDeaths = textBoxDeaths.Text;
+            Properties.Settings.Default.DirRecovered = textBoxRecovered.Text;
+            Properties.Settings.Default.Save();
+
+
+
+        }
+        #endregion
+
     }
 }
