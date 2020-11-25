@@ -19,6 +19,9 @@ namespace Covid19DataViewer
         /// 2020/11/24 ver 1.0 DDT 工藤
         /// 初版
         /// ////////////////////////////////////////////////////////////////
+        /// 2020/11/25 ver -.- DDT 工藤
+        /// branch-test
+        /// ////////////////////////////////////////////////////////////////
         /// </summary>
         private const string version = "1.0";
         private const string progName = "Covid19DataViewer";
