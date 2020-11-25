@@ -72,7 +72,7 @@ namespace Covid19DataViewer
             if (downloadClient == null)
             {
                 downloadClient = new System.Net.WebClient();
-                downloadClient.Headers.Add();
+                //downloadClient.Headers.Add();
 
 
                 //イベントハンドラの作成
