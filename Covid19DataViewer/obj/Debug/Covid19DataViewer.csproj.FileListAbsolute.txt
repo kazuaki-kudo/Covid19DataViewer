@@ -1,1 +1,9 @@
 C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\bin\Debug\Covid19DataViewer.exe.config
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\bin\Debug\Covid19DataViewer.exe
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\bin\Debug\Covid19DataViewer.pdb
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\obj\Debug\Covid19DataViewer.csprojResolveAssemblyReference.cache
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\obj\Debug\Covid19DataViewer.FormMain.resources
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\obj\Debug\Covid19DataViewer.Properties.Resources.resources
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\obj\Debug\Covid19DataViewer.csproj.GenerateResource.Cache
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\obj\Debug\Covid19DataViewer.exe
+C:\Users\JPKAKUD\Documents\Visual Studio 2015\Projects\Covid19DataViewer\Covid19DataViewer\obj\Debug\Covid19DataViewer.pdb

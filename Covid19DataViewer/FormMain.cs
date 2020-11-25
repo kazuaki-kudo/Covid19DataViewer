@@ -35,7 +35,18 @@ namespace Covid19DataViewer
         private const string saveLocalFullPathRecovered = @"C:\Logs\time_series_19-covid-Recovered.csv";
         private const string loadUrlConfirmed = @"https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
         private const string loadUrlDeathes = @"https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv";
-        private const string loadUrlRecovered = @"https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"; 
+        private const string loadUrlRecovered = @"https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv";
+        DayData DataConfirmed;
+        DayData DataDeaths;
+        DayData DataRecovered;
+        public enum CLMS
+        {
+            PROVINCE_STATE = 0,
+            COUNTRY_REGION = 1,
+            LATITUDE = 2,
+            LONGTUDE = 3,
+            DATETIME_AREA
+        }
         #endregion
 
         #region Form
@@ -54,12 +65,19 @@ namespace Covid19DataViewer
         private void Form1_Load(object sender, EventArgs e)
         {
             // バージョン表記
-            this.Text = progName + " Ver." + version + " " + Copyright();
+            string msg = progName + " Ver." + version;
+            this.Text = msg + " " + Copyright();
+            SLog(msg);
 
             // ディレクトリ表示前回値読み込み
             textBoxConfirmed.Text = Properties.Settings.Default.DirConfirmed;
             textBoxDeaths.Text = Properties.Settings.Default.DirDeaths;
             textBoxRecovered.Text = Properties.Settings.Default.DirRecovered;
+
+            // データクラス初期化
+            DataConfirmed = new DayData();
+            DataDeaths = new DayData();
+            DataRecovered = new DayData();
         }
 
 
@@ -170,6 +188,19 @@ namespace Covid19DataViewer
             }
         }
 
+        private void SLogDot()
+        {
+            int cnt = listBoxLog.Items.Count;
+            string msg = string.Empty;
+            if (cnt > 0)
+            {
+                msg = listBoxLog.Items[cnt - 1].ToString();
+            }
+            msg += '.';
+            listBoxLog.Items[cnt - 1] = msg;
+            Application.DoEvents();
+        }
+
         //private double CountMax = 0;
         //private double CountLatest = 0;
         //private int CountIndex = 0;
@@ -270,14 +301,115 @@ namespace Covid19DataViewer
 
         private void buttonRead_Click(object sender, EventArgs e)
         {
+            SLog("データを読み込みます");
+
             // ディレクトリ表示値保存
             Properties.Settings.Default.DirConfirmed = textBoxConfirmed.Text;
             Properties.Settings.Default.DirDeaths = textBoxDeaths.Text;
             Properties.Settings.Default.DirRecovered = textBoxRecovered.Text;
             Properties.Settings.Default.Save();
 
+            // データクリアー
+            DataConfirmed.Clear();
+            DataDeaths.Clear();
+            DataRecovered.Clear();
 
 
+
+        }
+
+        private void OpenFile(TextBox tBox, DayData dDat, string name)
+        {
+            string msg;
+            string filePath = tBox.Text.Trim();
+            // ファイルの有無確認
+            if (!File.Exists(filePath))
+            {
+                // ファイルが存在しない
+                msg = string.Format("ファイルが開けません ({0})", filePath);
+                SLog(msg);
+                MessageBox.Show(msg, name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            // CSVファイルの読み込み
+            try
+            {
+                using (StreamReader st = new StreamReader(filePath, Encoding.GetEncoding("UTF-8")))
+                {
+                    ReadFile(st, dDat, name);
+                }
+            }
+            catch (IOException e)
+            {
+                msg = string.Format("ファイルを読み込めませんでした ({0})", e.Message.ToString());
+                SLog(msg);
+                MessageBox.Show(msg, name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+        }
+
+        private DateTime GetDateTimeData(string dt)
+        {
+            string[] strs = dt.Split('/');
+            string month = string.Format("{0:00}",strs[0]);
+            string day = string.Format("{0:00}",strs[1]);
+            string year = "20" + strs[2];
+            string strTime = string.Format("{0}/{1}/{2} 00:00:00", year, month, day);
+            return DateTime.Parse(strTime);       
+        }
+
+        private void ReadFile(StreamReader st, DayData dDat, string name)
+        {
+            string msg;
+            // CSVデータ読み込み
+            msg = string.Format("データ読み込み ({0})", name);
+            SLogInv(msg);
+            bool Isfirst = true;
+            List<DayData.Days> commonDaysList = new List<DayData.Days>();
+            while (st.Peek() >= 0)
+            {
+                string[] cols = st.ReadLine().Split(',');
+                // Header
+                if (Isfirst)
+                {
+                    for (int c = (int)CLMS.DATETIME_AREA; c < cols.Length; c++)
+                    {
+                        DayData.Days ds = new DayData.Days();
+                        ds.dayDt = GetDateTimeData(cols[c]);
+                        ds.value = 0;
+                        commonDaysList.Add(ds);
+                    }
+                    Isfirst = false;
+                    continue;
+                }
+                // Data
+                DayData.CSSEData cd = new DayData.CSSEData();
+                cd.ProvinceState = cols[(int)CLMS.PROVINCE_STATE];
+                cd.CountryRegion = cols[(int)CLMS.COUNTRY_REGION];
+                cd.Latitude = short.Parse(cols[(int)CLMS.LATITUDE]);
+                cd.Longtude = short.Parse(cols[(int)CLMS.LONGTUDE]);
+                List<DayData.Days> daysList = new List<DayData.Days>();
+                for (int c2 = (int)CLMS.DATETIME_AREA; c2 < cols.Length; c2++)
+                {
+                    DayData.Days ds2 = new DayData.Days();
+                    ds2.dayDt = commonDaysList[c2 - (int)CLMS.DATETIME_AREA].dayDt;
+                    ds2.value = int.Parse(cols[c2]);
+                    daysList.Add(ds2);
+                }
+                cd.daysData = daysList;
+                //dDat.Add(cd);
+                SLogDot();
+            }
+
+            //Task<int> task = Task.Run(() => {
+
+            //});
+            //int result = await task;    // 0:成功 0以外:失敗
+            //if (result == (int)ThreadResult.S_OK)
+            //{
+            //    SLog("sysconfigテーブル設定終了");
+            //}
+            return;
         }
         #endregion
 
